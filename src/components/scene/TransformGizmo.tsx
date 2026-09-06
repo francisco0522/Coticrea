@@ -1,8 +1,8 @@
 import { TransformControls } from '@react-three/drei'
 import { useEffect, useState, type ReactNode } from 'react'
-import type { Group } from 'three'
+import type { Group, Object3D } from 'three'
 import { useEditorStore } from '../../store/editorStore'
-import { MODEL_ROOT_ID } from '../../types/editor'
+import { DEFAULT_TRANSFORM, MODEL_ROOT_ID } from '../../types/editor'
 import { useObjectRegistry } from './objectRegistry'
 
 interface TransformGizmoProps {
@@ -12,16 +12,15 @@ interface TransformGizmoProps {
 export function TransformGizmo({ onDraggingChange }: TransformGizmoProps) {
   const tool = useEditorStore((s) => s.tool)
   const space = useEditorStore((s) => s.space)
-  const selectedIds = useEditorStore((s) => s.selectedIds)
+  const primaryId = useEditorStore((s) => s.selectedIds[0] ?? null)
   const snapEnabled = useEditorStore((s) => s.snapEnabled)
   const translateSnap = useEditorStore((s) => s.translateSnap)
   const rotateSnapDeg = useEditorStore((s) => s.rotateSnapDeg)
   const scaleSnap = useEditorStore((s) => s.scaleSnap)
   const setTransform = useEditorStore((s) => s.setTransform)
-  const objects = useObjectRegistry((s) => s.objects)
-
-  const primaryId = selectedIds[0] ?? null
-  const object = primaryId ? objects[primaryId] : undefined
+  const object = useObjectRegistry((s) =>
+    primaryId ? s.objects[primaryId] : undefined,
+  ) as Object3D | undefined
 
   if (!object || !primaryId || tool === 'select') return null
 
@@ -63,7 +62,9 @@ export function TransformGizmo({ onDraggingChange }: TransformGizmoProps) {
 
 export function ModelRoot({ children }: { children: ReactNode }) {
   const [group, setGroup] = useState<Group | null>(null)
-  const transform = useEditorStore((s) => s.transforms[MODEL_ROOT_ID])
+  const transform = useEditorStore(
+    (s) => s.transforms[MODEL_ROOT_ID] ?? DEFAULT_TRANSFORM,
+  )
   const register = useObjectRegistry((s) => s.register)
   const unregister = useObjectRegistry((s) => s.unregister)
   const select = useEditorStore((s) => s.select)
@@ -75,7 +76,7 @@ export function ModelRoot({ children }: { children: ReactNode }) {
   }, [group, register, unregister])
 
   useEffect(() => {
-    if (!group || !transform) return
+    if (!group) return
     group.position.set(
       transform.position.x,
       transform.position.y,

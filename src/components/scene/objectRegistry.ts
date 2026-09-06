@@ -12,18 +12,27 @@ interface RegistryState {
 export const useObjectRegistry = create<RegistryState>((set, get) => ({
   objects: {},
   labels: {},
-  register: (id, object, label) =>
-    set((state) => ({
+  register: (id, object, label) => {
+    const state = get()
+    if (state.objects[id] === object && (!label || state.labels[id] === label)) {
+      return
+    }
+    set({
       objects: { ...state.objects, [id]: object },
-      labels: { ...state.labels, [id]: label ?? state.labels[id] ?? id },
-    })),
-  unregister: (id) =>
-    set((state) => {
-      const objects = { ...state.objects }
-      const labels = { ...state.labels }
-      delete objects[id]
-      delete labels[id]
-      return { objects, labels }
-    }),
+      labels: {
+        ...state.labels,
+        [id]: label ?? state.labels[id] ?? id,
+      },
+    })
+  },
+  unregister: (id) => {
+    const state = get()
+    if (!(id in state.objects) && !(id in state.labels)) return
+    const objects = { ...state.objects }
+    const labels = { ...state.labels }
+    delete objects[id]
+    delete labels[id]
+    set({ objects, labels })
+  },
   get: (id) => get().objects[id],
 }))
