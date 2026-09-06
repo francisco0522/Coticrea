@@ -3,6 +3,7 @@ import { useDesignStore } from '../../store/designStore'
 import { CategorySelector } from './CategorySelector'
 import { DynamicControls } from './DynamicControls'
 import { MaterialSelector } from './MaterialSelector'
+import { QuotePanel } from './QuotePanel'
 
 export function ConfigPanel() {
   const category = useDesignStore((state) => state.category)
@@ -31,6 +32,7 @@ export function ConfigPanel() {
         <CategorySelector />
         <DynamicControls />
         <MaterialSelector />
+        <QuotePanel />
       </div>
 
       <footer className="border-t border-slate-800 px-5 py-4">
