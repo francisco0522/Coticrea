@@ -1,5 +1,6 @@
+import { useDesignStore } from '../../store/designStore'
 import { useEditorStore } from '../../store/editorStore'
-import { MODEL_OBJECT_ID } from '../../types/editor'
+import { useObjectRegistry } from './objectRegistry'
 
 function Field({
   label,
@@ -30,28 +31,54 @@ function Field({
 }
 
 export function TransformInspector() {
-  const transform = useEditorStore((state) => state.transforms[MODEL_OBJECT_ID])
-  const setPosition = useEditorStore((state) => state.setPosition)
-  const setRotation = useEditorStore((state) => state.setRotation)
-  const setScale = useEditorStore((state) => state.setScale)
-  const selectedId = useEditorStore((state) => state.selectedId)
+  const category = useDesignStore((s) => s.category)
+  const selectedIds = useEditorStore((s) => s.selectedIds)
+  const sceneNodes = useEditorStore((s) => s.sceneNodes)
+  const transforms = useEditorStore((s) => s.transforms)
+  const setPosition = useEditorStore((s) => s.setPosition)
+  const setRotation = useEditorStore((s) => s.setRotation)
+  const setScale = useEditorStore((s) => s.setScale)
+  const setNodeSize = useEditorStore((s) => s.setNodeSize)
+  const setNodeColor = useEditorStore((s) => s.setNodeColor)
+  const labels = useObjectRegistry((s) => s.labels)
 
-  if (!transform || selectedId !== MODEL_OBJECT_ID) {
+  const primaryId = selectedIds[0]
+  if (!primaryId) {
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3 text-xs text-slate-500">
-        Selecciona el modelo (clic) para editar transform.
+        Clic en una pieza o cubo para editarla.
+        {category === 'freeform' ? ' Usa + Cubo para crear.' : ''}
+      </div>
+    )
+  }
+
+  const node = sceneNodes[primaryId]
+  const transform = node?.transform ?? transforms[primaryId]
+  if (!transform) {
+    return (
+      <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-3 text-xs text-slate-500">
+        Sin transform para la selección.
       </div>
     )
   }
 
   const toDeg = (rad: number) => (rad * 180) / Math.PI
   const toRad = (deg: number) => (deg * Math.PI) / 180
+  const title = node?.name ?? labels[primaryId] ?? primaryId
 
   return (
     <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-950/90 p-3 shadow-xl backdrop-blur">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-        Transform
-      </p>
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Transform
+        </p>
+        <p className="truncate text-xs font-medium text-slate-200">{title}</p>
+        {selectedIds.length > 1 ? (
+          <p className="text-[10px] text-amber-400/80">
+            +{selectedIds.length - 1} más (gizmo en el primario)
+          </p>
+        ) : null}
+      </div>
 
       <div>
         <p className="mb-1 text-[10px] text-slate-500">Position (m)</p>
@@ -60,19 +87,19 @@ export function TransformInspector() {
             label="X"
             value={transform.position.x}
             step={0.05}
-            onChange={(x) => setPosition(MODEL_OBJECT_ID, { ...transform.position, x })}
+            onChange={(x) => setPosition(primaryId, { ...transform.position, x })}
           />
           <Field
             label="Y"
             value={transform.position.y}
             step={0.05}
-            onChange={(y) => setPosition(MODEL_OBJECT_ID, { ...transform.position, y })}
+            onChange={(y) => setPosition(primaryId, { ...transform.position, y })}
           />
           <Field
             label="Z"
             value={transform.position.z}
             step={0.05}
-            onChange={(z) => setPosition(MODEL_OBJECT_ID, { ...transform.position, z })}
+            onChange={(z) => setPosition(primaryId, { ...transform.position, z })}
           />
         </div>
       </div>
@@ -85,7 +112,7 @@ export function TransformInspector() {
             value={toDeg(transform.rotation.x)}
             step={5}
             onChange={(x) =>
-              setRotation(MODEL_OBJECT_ID, { ...transform.rotation, x: toRad(x) })
+              setRotation(primaryId, { ...transform.rotation, x: toRad(x) })
             }
           />
           <Field
@@ -93,7 +120,7 @@ export function TransformInspector() {
             value={toDeg(transform.rotation.y)}
             step={5}
             onChange={(y) =>
-              setRotation(MODEL_OBJECT_ID, { ...transform.rotation, y: toRad(y) })
+              setRotation(primaryId, { ...transform.rotation, y: toRad(y) })
             }
           />
           <Field
@@ -101,7 +128,7 @@ export function TransformInspector() {
             value={toDeg(transform.rotation.z)}
             step={5}
             onChange={(z) =>
-              setRotation(MODEL_OBJECT_ID, { ...transform.rotation, z: toRad(z) })
+              setRotation(primaryId, { ...transform.rotation, z: toRad(z) })
             }
           />
         </div>
@@ -114,22 +141,59 @@ export function TransformInspector() {
             label="X"
             value={transform.scale.x}
             step={0.05}
-            onChange={(x) => setScale(MODEL_OBJECT_ID, { ...transform.scale, x })}
+            onChange={(x) => setScale(primaryId, { ...transform.scale, x })}
           />
           <Field
             label="Y"
             value={transform.scale.y}
             step={0.05}
-            onChange={(y) => setScale(MODEL_OBJECT_ID, { ...transform.scale, y })}
+            onChange={(y) => setScale(primaryId, { ...transform.scale, y })}
           />
           <Field
             label="Z"
             value={transform.scale.z}
             step={0.05}
-            onChange={(z) => setScale(MODEL_OBJECT_ID, { ...transform.scale, z })}
+            onChange={(z) => setScale(primaryId, { ...transform.scale, z })}
           />
         </div>
       </div>
+
+      {node?.type === 'cube' ? (
+        <>
+          <div>
+            <p className="mb-1 text-[10px] text-slate-500">Tamaño cubo (m)</p>
+            <div className="grid grid-cols-3 gap-1">
+              <Field
+                label="X"
+                value={node.size.x}
+                step={0.05}
+                onChange={(x) => setNodeSize(primaryId, { x })}
+              />
+              <Field
+                label="Y"
+                value={node.size.y}
+                step={0.05}
+                onChange={(y) => setNodeSize(primaryId, { y })}
+              />
+              <Field
+                label="Z"
+                value={node.size.z}
+                step={0.05}
+                onChange={(z) => setNodeSize(primaryId, { z })}
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-[10px] text-slate-400">
+            <span className="w-10">Color</span>
+            <input
+              type="color"
+              value={node.color}
+              onChange={(event) => setNodeColor(primaryId, event.target.value)}
+              className="h-7 w-full cursor-pointer rounded border border-slate-700 bg-slate-950"
+            />
+          </label>
+        </>
+      ) : null}
     </div>
   )
 }

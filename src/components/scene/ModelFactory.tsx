@@ -38,6 +38,8 @@ export function ModelFactory() {
           materialId={materialId}
         />
       )
+    case 'freeform':
+      return null
     default: {
       const _exhaustive: never = category
       return _exhaustive

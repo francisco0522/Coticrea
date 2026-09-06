@@ -1,11 +1,10 @@
 import { useMemo } from 'react'
-import { DesignMeshMaterial } from './DesignMeshMaterial'
-import { useDesignMaterial } from './useDesignMaterial'
 import type {
   MaterialId,
   StructureDimensions,
   StructureOptions,
 } from '../../types/design'
+import { PartMesh } from './SelectablePart'
 
 interface StructureModelProps {
   dimensions: StructureDimensions
@@ -18,7 +17,6 @@ export function StructureModel({
   options,
   materialId,
 }: StructureModelProps) {
-  const material = useDesignMaterial(materialId)
   const { length: L, width: W, height: H, profileThickness: P } = dimensions
   const beamCount = Math.max(1, Math.round(options.beamCount))
   const spacing = Math.max(0.5, options.pillarSpacing)
@@ -26,7 +24,10 @@ export function StructureModel({
   const pillarXs = useMemo(() => {
     const count = Math.max(2, Math.floor(L / spacing) + 1)
     if (count === 2) return [-L / 2, L / 2]
-    return Array.from({ length: count }, (_, index) => -L / 2 + (L * index) / (count - 1))
+    return Array.from(
+      { length: count },
+      (_, index) => -L / 2 + (L * index) / (count - 1),
+    )
   }, [L, spacing])
 
   const pillarZs = useMemo(() => [-W / 2, W / 2], [W])
@@ -41,46 +42,40 @@ export function StructureModel({
 
   return (
     <group>
-      {pillarXs.map((x) =>
-        pillarZs.map((z) => (
-          <mesh
-            key={`pillar-${x}-${z}`}
+      {pillarXs.map((x, xi) =>
+        pillarZs.map((z, zi) => (
+          <PartMesh
+            key={`pillar-${xi}-${zi}`}
+            partId={`struct-pillar-${xi}-${zi}`}
+            label={`Pilar ${xi + 1}-${zi + 1}`}
             position={[x, H / 2, z]}
-            castShadow
-            receiveShadow
-          >
-            <boxGeometry args={[P, H, P]} />
-            <DesignMeshMaterial material={material} metalnessFloor={0.35} />
-          </mesh>
+            args={[P, H, P]}
+            materialId={materialId}
+          />
         )),
       )}
 
       {beamYs.map((y, beamIndex) => (
         <group key={`level-${beamIndex}`}>
-          {/* Vigas longitudinales */}
-          {pillarZs.map((z) => (
-            <mesh
-              key={`beam-x-${beamIndex}-${z}`}
+          {pillarZs.map((z, zi) => (
+            <PartMesh
+              key={`beam-x-${beamIndex}-${zi}`}
+              partId={`struct-beam-x-${beamIndex}-${zi}`}
+              label={`Viga L${beamIndex + 1}-${zi + 1}`}
               position={[0, y - P / 2, z]}
-              castShadow
-              receiveShadow
-            >
-              <boxGeometry args={[L + P, P, P]} />
-              <DesignMeshMaterial material={material} metalnessFloor={0.35} />
-            </mesh>
+              args={[L + P, P, P]}
+              materialId={materialId}
+            />
           ))}
-
-          {/* Vigas transversales */}
-          {pillarXs.map((x) => (
-            <mesh
-              key={`beam-z-${beamIndex}-${x}`}
+          {pillarXs.map((x, xi) => (
+            <PartMesh
+              key={`beam-z-${beamIndex}-${xi}`}
+              partId={`struct-beam-z-${beamIndex}-${xi}`}
+              label={`Viga T${beamIndex + 1}-${xi + 1}`}
               position={[x, y - P / 2, 0]}
-              castShadow
-              receiveShadow
-            >
-              <boxGeometry args={[P, P, W + P]} />
-              <DesignMeshMaterial material={material} metalnessFloor={0.35} />
-            </mesh>
+              args={[P, P, W + P]}
+              materialId={materialId}
+            />
           ))}
         </group>
       ))}

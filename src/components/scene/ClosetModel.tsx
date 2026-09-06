@@ -1,11 +1,10 @@
 import { useMemo } from 'react'
-import { DesignMeshMaterial } from './DesignMeshMaterial'
-import { useDesignMaterial } from './useDesignMaterial'
 import type {
   ClosetDimensions,
   ClosetOptions,
   MaterialId,
 } from '../../types/design'
+import { PartMesh } from './SelectablePart'
 
 interface ClosetModelProps {
   dimensions: ClosetDimensions
@@ -18,7 +17,6 @@ export function ClosetModel({
   options,
   materialId,
 }: ClosetModelProps) {
-  const material = useDesignMaterial(materialId)
   const { length: L, height: H, depth: D, thickness: T } = dimensions
   const shelves = Math.max(0, Math.round(options.shelves))
   const divisions = Math.max(0, Math.round(options.verticalDivisions))
@@ -30,7 +28,10 @@ export function ClosetModel({
   const shelfYs = useMemo(() => {
     if (shelves <= 0) return [] as number[]
     const start = T + innerHeight / (shelves + 1)
-    return Array.from({ length: shelves }, (_, index) => start + index * (innerHeight / (shelves + 1)))
+    return Array.from(
+      { length: shelves },
+      (_, index) => start + index * (innerHeight / (shelves + 1)),
+    )
   }, [innerHeight, shelves, T])
 
   const dividerXs = useMemo(() => {
@@ -43,56 +44,60 @@ export function ClosetModel({
 
   return (
     <group position={[0, H / 2, 0]}>
-      {/* Laterales */}
-      <mesh position={[-L / 2 + T / 2, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[T, H, D]} />
-        <DesignMeshMaterial material={material} />
-      </mesh>
-      <mesh position={[L / 2 - T / 2, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[T, H, D]} />
-        <DesignMeshMaterial material={material} />
-      </mesh>
-
-      {/* Techo y base */}
-      <mesh position={[0, H / 2 - T / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[L, T, D]} />
-        <DesignMeshMaterial material={material} />
-      </mesh>
-      <mesh position={[0, -H / 2 + T / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[L, T, D]} />
-        <DesignMeshMaterial material={material} />
-      </mesh>
-
-      {/* Fondo */}
-      <mesh position={[0, 0, -D / 2 + T / 2]} castShadow receiveShadow>
-        <boxGeometry args={[innerWidth, innerHeight, T]} />
-        <DesignMeshMaterial material={material} />
-      </mesh>
-
-      {/* Estantes */}
+      <PartMesh
+        partId="closet-side-l"
+        label="Lateral izq."
+        position={[-L / 2 + T / 2, 0, 0]}
+        args={[T, H, D]}
+        materialId={materialId}
+      />
+      <PartMesh
+        partId="closet-side-r"
+        label="Lateral der."
+        position={[L / 2 - T / 2, 0, 0]}
+        args={[T, H, D]}
+        materialId={materialId}
+      />
+      <PartMesh
+        partId="closet-top"
+        label="Techo"
+        position={[0, H / 2 - T / 2, 0]}
+        args={[L, T, D]}
+        materialId={materialId}
+      />
+      <PartMesh
+        partId="closet-bottom"
+        label="Base"
+        position={[0, -H / 2 + T / 2, 0]}
+        args={[L, T, D]}
+        materialId={materialId}
+      />
+      <PartMesh
+        partId="closet-back"
+        label="Fondo"
+        position={[0, 0, -D / 2 + T / 2]}
+        args={[innerWidth, innerHeight, T]}
+        materialId={materialId}
+      />
       {shelfYs.map((y, index) => (
-        <mesh
+        <PartMesh
           key={`shelf-${index}`}
+          partId={`closet-shelf-${index}`}
+          label={`Estante ${index + 1}`}
           position={[0, -H / 2 + y, T / 2]}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={[innerWidth, T, shelfDepth]} />
-          <DesignMeshMaterial material={material} />
-        </mesh>
+          args={[innerWidth, T, shelfDepth]}
+          materialId={materialId}
+        />
       ))}
-
-      {/* Divisiones verticales */}
       {dividerXs.map((x, index) => (
-        <mesh
+        <PartMesh
           key={`div-${index}`}
+          partId={`closet-div-${index}`}
+          label={`División ${index + 1}`}
           position={[x, 0, T / 2]}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={[T, innerHeight, shelfDepth]} />
-          <DesignMeshMaterial material={material} />
-        </mesh>
+          args={[T, innerHeight, shelfDepth]}
+          materialId={materialId}
+        />
       ))}
     </group>
   )

@@ -1,5 +1,5 @@
 /** Categorías de diseño soportadas por la plataforma. */
-export type DesignCategory = 'escritorio' | 'closet' | 'comedor' | 'estructura'
+export type DesignCategory = 'escritorio' | 'closet' | 'comedor' | 'estructura' | 'freeform'
 
 /** Identificadores de material disponibles. */
 export type MaterialId =
@@ -66,6 +66,7 @@ export type CategoryDimensions =
       dimensions: StructureDimensions
       options: StructureOptions
     }
+  | { category: 'freeform' }
 
 export interface DesignStateSnapshot {
   category: DesignCategory

@@ -30,6 +30,11 @@ export const CATEGORY_OPTIONS: CategoryOption[] = [
     label: 'Estructura',
     description: 'Estructura paramétrica de vigas y pilares',
   },
+  {
+    id: 'freeform',
+    label: 'Freeform',
+    description: 'Crea cubos desde cero, edítalos y únelos en grupos',
+  },
 ]
 
 export const MATERIAL_OPTIONS: MaterialOption[] = [

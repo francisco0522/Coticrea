@@ -1,5 +1,5 @@
-import { useDesignMaterial } from './useDesignMaterial'
 import type { DiningTableDimensions, MaterialId } from '../../types/design'
+import { PartMesh } from './SelectablePart'
 
 interface DiningModelProps {
   dimensions: DiningTableDimensions
@@ -7,7 +7,6 @@ interface DiningModelProps {
 }
 
 export function DiningModel({ dimensions, materialId }: DiningModelProps) {
-  const material = useDesignMaterial(materialId)
   const { length: L, width: W, height: H, thickness: T } = dimensions
 
   const legSize = Math.max(0.05, T * 1.5)
@@ -25,40 +24,31 @@ export function DiningModel({ dimensions, materialId }: DiningModelProps) {
 
   return (
     <group>
-      <mesh position={[0, topY, 0]} castShadow receiveShadow>
-        <boxGeometry args={[L, T, W]} />
-        <meshStandardMaterial
-          color={material.color}
-          roughness={material.roughness}
-          metalness={material.metalness}
-          transparent={material.transparent}
-          opacity={material.opacity}
-        />
-      </mesh>
-
-      {/* Apron / faldón bajo el tablero */}
-      <mesh position={[0, legHeight - T * 0.6, 0]} castShadow>
-        <boxGeometry args={[L * 0.92, T * 0.7, W * 0.92]} />
-        <meshStandardMaterial
-          color={material.color}
-          roughness={Math.min(1, material.roughness + 0.15)}
-          metalness={material.metalness}
-          transparent={material.transparent}
-          opacity={material.opacity}
-        />
-      </mesh>
-
+      <PartMesh
+        partId="dining-top"
+        label="Tablero"
+        position={[0, topY, 0]}
+        args={[L, T, W]}
+        materialId={materialId}
+      />
+      <PartMesh
+        partId="dining-apron"
+        label="Faldón"
+        position={[0, legHeight - T * 0.6, 0]}
+        args={[L * 0.92, T * 0.7, W * 0.92]}
+        materialId={materialId}
+        roughnessOffset={0.15}
+      />
       {legPositions.map((position, index) => (
-        <mesh key={index} position={position} castShadow receiveShadow>
-          <boxGeometry args={[legSize, legHeight, legSize]} />
-          <meshStandardMaterial
-            color={material.color}
-            roughness={Math.min(1, material.roughness + 0.1)}
-            metalness={material.metalness}
-            transparent={material.transparent}
-            opacity={material.opacity}
-          />
-        </mesh>
+        <PartMesh
+          key={index}
+          partId={`dining-leg-${index}`}
+          label={`Pata ${index + 1}`}
+          position={position}
+          args={[legSize, legHeight, legSize]}
+          materialId={materialId}
+          roughnessOffset={0.1}
+        />
       ))}
     </group>
   )
