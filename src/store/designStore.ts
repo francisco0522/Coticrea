@@ -96,6 +96,8 @@ export const useDesignStore = create<DesignStore>((set, get) => ({
           structureOptions: { ...DEFAULT_STRUCTURE_OPTIONS },
         })
         break
+      case 'freeform':
+        break
     }
   },
 }))

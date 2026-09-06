@@ -92,7 +92,7 @@ export function SceneViewer() {
         <div>
           <h2 className="text-sm font-semibold text-slate-100">Visor 3D</h2>
           <p className="text-xs text-slate-500">
-            Q Select · W Move · E Rotate · R Scale · X World/Local · S Snap · G Grid
+            Q/W/E/R tools · Shift+clic multi · Freeform: A cubo · J unir · Del borrar
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function SceneViewer() {
           gl={{ antialias: true }}
           className="h-full w-full"
           onPointerMissed={() => {
-            useEditorStore.getState().select(null)
+            useEditorStore.getState().clearSelection()
           }}
         >
           <SceneContent

@@ -168,6 +168,21 @@ export function DynamicControls() {
           </>
         ) : null}
 
+        {category === 'freeform' ? (
+          <div className="space-y-2 text-xs leading-relaxed text-slate-400">
+            <p>
+              Modo <span className="text-amber-300">Freeform</span>: crea cubos,
+              muévelos con el gizmo y únelos en grupos.
+            </p>
+            <ul className="list-disc space-y-1 pl-4 text-slate-500">
+              <li><b className="text-slate-300">A</b> o botón + Cubo</li>
+              <li><b className="text-slate-300">Shift+clic</b> multi-selección</li>
+              <li><b className="text-slate-300">J</b> unir · <b className="text-slate-300">U</b> separar</li>
+              <li><b className="text-slate-300">Delete</b> borrar</li>
+            </ul>
+          </div>
+        ) : null}
+
         {category === 'estructura' ? (
           <>
             <NumberField

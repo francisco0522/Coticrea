@@ -48,6 +48,12 @@ export function buildQuoteRequest(state: DesignSnapshotForQuote): QuoteRequest {
         opciones: state.structureOptions,
         materialId: state.materialId,
       }
+    case 'freeform':
+      return {
+        tipo: 'escritorio',
+        dimensiones: state.desk,
+        materialId: state.materialId,
+      }
     default: {
       const _exhaustive: never = state.category
       return _exhaustive
