@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Group, Mesh } from 'three'
 import { useEditorStore } from '../../store/editorStore'
-import type { SceneNode } from '../../types/editor'
 import { useObjectRegistry } from './objectRegistry'
 
 function FreeformNodeView({ nodeId }: { nodeId: string }) {
   const node = useEditorStore((s) => s.sceneNodes[nodeId])
-  const selectedIds = useEditorStore((s) => s.selectedIds)
+  const selected = useEditorStore((s) => s.selectedIds.includes(nodeId))
   const select = useEditorStore((s) => s.select)
   const [group, setGroup] = useState<Group | null>(null)
   const register = useObjectRegistry((s) => s.register)
@@ -16,7 +15,7 @@ function FreeformNodeView({ nodeId }: { nodeId: string }) {
     if (!group || !node) return
     register(node.id, group, node.name)
     return () => unregister(node.id)
-  }, [group, node, register, unregister])
+  }, [group, node?.id, node?.name, register, unregister])
 
   useEffect(() => {
     if (!group || !node) return
@@ -24,18 +23,31 @@ function FreeformNodeView({ nodeId }: { nodeId: string }) {
     group.position.set(t.position.x, t.position.y, t.position.z)
     group.rotation.set(t.rotation.x, t.rotation.y, t.rotation.z)
     group.scale.set(t.scale.x, t.scale.y, t.scale.z)
-  }, [group, node])
+  }, [
+    group,
+    node?.transform.position.x,
+    node?.transform.position.y,
+    node?.transform.position.z,
+    node?.transform.rotation.x,
+    node?.transform.rotation.y,
+    node?.transform.rotation.z,
+    node?.transform.scale.x,
+    node?.transform.scale.y,
+    node?.transform.scale.z,
+  ])
 
   useEffect(() => {
-    if (!group || !node) return
-    const selected = selectedIds.includes(node.id)
+    if (!group) return
     group.traverse((obj) => {
       const mesh = obj as Mesh
       if (!mesh.isMesh) return
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
       mats.forEach((mat) => {
         if (mat && 'emissive' in mat && mat.emissive) {
-          const m = mat as { emissive: { set: (c: string) => void }; emissiveIntensity?: number }
+          const m = mat as {
+            emissive: { set: (c: string) => void }
+            emissiveIntensity?: number
+          }
           m.emissive.set(selected ? '#f59e0b' : '#000000')
           if (typeof m.emissiveIntensity === 'number') {
             m.emissiveIntensity = selected ? 0.35 : 0
@@ -43,7 +55,7 @@ function FreeformNodeView({ nodeId }: { nodeId: string }) {
         }
       })
     })
-  }, [group, node, selectedIds])
+  }, [group, selected])
 
   if (!node) return null
 
@@ -59,7 +71,11 @@ function FreeformNodeView({ nodeId }: { nodeId: string }) {
       {node.type === 'cube' ? (
         <mesh castShadow receiveShadow>
           <boxGeometry args={[node.size.x, node.size.y, node.size.z]} />
-          <meshStandardMaterial color={node.color} roughness={0.55} metalness={0.05} />
+          <meshStandardMaterial
+            color={node.color}
+            roughness={0.55}
+            metalness={0.05}
+          />
         </mesh>
       ) : null}
 
@@ -75,15 +91,16 @@ function FreeformNodeView({ nodeId }: { nodeId: string }) {
 export function FreeformScene() {
   const rootNodeIds = useEditorStore((s) => s.rootNodeIds)
   const addCube = useEditorStore((s) => s.addCube)
+  const seeded = useRef(false)
 
-  // Auto seed first cube if empty when entering freeform
   useEffect(() => {
-    if (rootNodeIds.length === 0) {
+    if (seeded.current) return
+    seeded.current = true
+    const roots = useEditorStore.getState().rootNodeIds
+    if (roots.length === 0) {
       addCube()
     }
-    // only on mount / when emptied
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [addCube])
 
   return (
     <group>
@@ -93,5 +110,3 @@ export function FreeformScene() {
     </group>
   )
 }
-
-export type { SceneNode }

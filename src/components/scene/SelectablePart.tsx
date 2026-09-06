@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { Group, Mesh } from 'three'
 import { useEditorStore } from '../../store/editorStore'
-import { cloneTransform } from '../../types/editor'
+import { DEFAULT_TRANSFORM } from '../../types/editor'
 import type { MaterialId } from '../../types/design'
 import { DesignMeshMaterial } from './DesignMeshMaterial'
 import { useDesignMaterial } from './useDesignMaterial'
@@ -30,15 +30,14 @@ export function SelectablePart({
   children,
 }: SelectablePartProps) {
   const [offsetGroup, setOffsetGroup] = useState<Group | null>(null)
-  const selectedIds = useEditorStore((state) => state.selectedIds)
+  const selected = useEditorStore((state) => state.selectedIds.includes(partId))
   const select = useEditorStore((state) => state.select)
+  // Important: never return a fresh object from the selector (causes max update depth).
   const offset = useEditorStore(
-    (state) => state.transforms[partId] ?? cloneTransform(),
+    (state) => state.transforms[partId] ?? DEFAULT_TRANSFORM,
   )
   const registerObject = useObjectRegistry((s) => s.register)
   const unregisterObject = useObjectRegistry((s) => s.unregister)
-
-  const selected = selectedIds.includes(partId)
 
   useEffect(() => {
     if (!offsetGroup) return
@@ -69,7 +68,10 @@ export function SelectablePart({
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
       mats.forEach((mat) => {
         if (mat && 'emissive' in mat && mat.emissive) {
-          const m = mat as { emissive: { set: (c: string) => void }; emissiveIntensity?: number }
+          const m = mat as {
+            emissive: { set: (c: string) => void }
+            emissiveIntensity?: number
+          }
           m.emissive.set(selected ? '#f59e0b' : '#000000')
           if (typeof m.emissiveIntensity === 'number') {
             m.emissiveIntensity = selected ? 0.35 : 0
@@ -115,7 +117,10 @@ export function PartMesh({
     <SelectablePart partId={partId} label={label} position={position}>
       <mesh castShadow receiveShadow>
         <boxGeometry args={args} />
-        <DesignMeshMaterial material={material} roughnessOffset={roughnessOffset} />
+        <DesignMeshMaterial
+          material={material}
+          roughnessOffset={roughnessOffset}
+        />
       </mesh>
     </SelectablePart>
   )
