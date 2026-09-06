@@ -1,4 +1,4 @@
-import { CATEGORY_OPTIONS } from '../../constants/design'
+import { CATEGORY_OPTIONS, MATERIAL_OPTIONS } from '../../constants/design'
 import { useDesignStore } from '../../store/designStore'
 
 export function ViewerPlaceholder() {
@@ -13,17 +13,18 @@ export function ViewerPlaceholder() {
 
   const categoryLabel =
     CATEGORY_OPTIONS.find((option) => option.id === category)?.label ?? category
+  const material = MATERIAL_OPTIONS.find((option) => option.id === materialId)
 
   const summary = (() => {
     switch (category) {
       case 'escritorio':
-        return `${desk.length} × ${desk.width} × ${desk.height} m · grosor ${desk.thickness} m`
+        return `${desk.length.toFixed(2)} × ${desk.width.toFixed(2)} × ${desk.height.toFixed(2)} m · grosor ${desk.thickness.toFixed(3)} m`
       case 'comedor':
-        return `${dining.length} × ${dining.width} × ${dining.height} m · grosor ${dining.thickness} m`
+        return `${dining.length.toFixed(2)} × ${dining.width.toFixed(2)} × ${dining.height.toFixed(2)} m · grosor ${dining.thickness.toFixed(3)} m`
       case 'closet':
-        return `${closet.length} × ${closet.depth} × ${closet.height} m · ${closetOptions.shelves} estantes · ${closetOptions.verticalDivisions} divisiones`
+        return `${closet.length.toFixed(2)} × ${closet.depth.toFixed(2)} × ${closet.height.toFixed(2)} m · ${closetOptions.shelves} estantes · ${closetOptions.verticalDivisions} divisiones`
       case 'estructura':
-        return `${structure.length} × ${structure.width} × ${structure.height} m · ${structureOptions.beamCount} vigas · paso ${structureOptions.pillarSpacing} m`
+        return `${structure.length.toFixed(2)} × ${structure.width.toFixed(2)} × ${structure.height.toFixed(2)} m · ${structureOptions.beamCount} vigas · paso ${structureOptions.pillarSpacing.toFixed(2)} m`
     }
   })()
 
@@ -59,9 +60,20 @@ export function ViewerPlaceholder() {
             {categoryLabel}
           </h3>
           <p className="mt-2 text-sm text-slate-400">{summary}</p>
-          <p className="mt-4 text-xs text-slate-500">
-            Material: <span className="text-slate-300">{materialId}</span>
-          </p>
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <span
+              aria-hidden
+              className="h-6 w-6 rounded-md border border-slate-600"
+              style={{ backgroundColor: material?.color ?? '#888' }}
+            />
+            <p className="text-xs text-slate-500">
+              Material:{' '}
+              <span className="text-slate-300">
+                {material?.label ?? materialId}
+                {material ? ` · ${material.finish}` : ''}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </section>

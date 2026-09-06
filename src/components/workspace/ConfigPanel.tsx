@@ -1,10 +1,11 @@
 import { CATEGORY_OPTIONS } from '../../constants/design'
 import { useDesignStore } from '../../store/designStore'
 import { CategorySelector } from './CategorySelector'
+import { DynamicControls } from './DynamicControls'
+import { MaterialSelector } from './MaterialSelector'
 
 export function ConfigPanel() {
   const category = useDesignStore((state) => state.category)
-  const materialId = useDesignStore((state) => state.materialId)
   const resetCurrentCategory = useDesignStore(
     (state) => state.resetCurrentCategory,
   )
@@ -28,26 +29,8 @@ export function ConfigPanel() {
 
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
         <CategorySelector />
-
-        <section className="rounded-xl border border-dashed border-slate-800 bg-slate-900/40 p-4">
-          <h2 className="text-sm font-medium text-slate-200">
-            Controles dinámicos
-          </h2>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">
-            Los inputs de <span className="text-slate-300">{categoryLabel}</span>{' '}
-            se conectarán en el Paso 3. El estado del store ya está listo para
-            recibir cambios de dimensiones y opciones.
-          </p>
-        </section>
-
-        <section className="rounded-xl border border-dashed border-slate-800 bg-slate-900/40 p-4">
-          <h2 className="text-sm font-medium text-slate-200">Materiales</h2>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">
-            Material activo en el store:{' '}
-            <span className="font-medium text-slate-300">{materialId}</span>. El
-            selector completo se añadirá junto a los controles dinámicos.
-          </p>
-        </section>
+        <DynamicControls />
+        <MaterialSelector />
       </div>
 
       <footer className="border-t border-slate-800 px-5 py-4">
